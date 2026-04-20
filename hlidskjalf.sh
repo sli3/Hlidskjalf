@@ -1,6 +1,16 @@
 #!/bin/bash
-# hlidskjalf.sh
-# This script performs system maintenance and logs its own output to a system file.
+# --- Function: Safety Check for Sudo Privileges ---
+# Checks if the current user has functional sudo privileges without needing an interactive password.
+safety_check_sudo() {
+    # Try running a non-interactive sudo command (e.g., 'sudo -n true').
+    # The exit status ($?) will be 0 if sudo is available and accepts the command non-interactively.
+    if sudo -n true 2>/dev/null; then
+        return 0 # Success: Sudo privileges confirmed
+    else
+        echo "🚨 Sudo privileges are required but not available or configuration is incorrect. Exiting script."
+        return 1 # Failure: Cannot proceed without sudo
+    fi
+}
 
 # --- Part 1: Logging Setup and Timestamp ---
 # Define the log file location - CHANGED TO REFLECT SCRIPT NAME
@@ -8,7 +18,9 @@ LOG_FILE="/var/log/hlidskjalf.log"
 
 # Run the timestamp command first. This creates/overwrites the log file
 # and requires 'sudo' permissions.
-sudo date | sudo tee $LOG_FILE
+if ! safety_check_sudo; then
+    exit 1
+fi
 
 # --- Part 2: The "Output Bucket" ---
 # All output (stdout & stderr) from the block below will be
@@ -71,8 +83,8 @@ sudo date | sudo tee $LOG_FILE
         echo " [DRY RUN] Would execute: sudo apt autoremove -y && sudo apt clean."
     else
         echo "Running Journalctl vacuum..."
-        sudo journalctl --vacuum-size=$LOG_SIZE_LIMIT
-        sudo journalctl --vacuum-time=$LOG_TIME_LIMIT
+sudo journalctl --vacuum-size="$LOG_SIZE_LIMIT"
+sudo journalctl --vacuum-time="$LOG_TIME_LIMIT"
 
         echo "Running APT package cache cleanup..."
         sudo apt autoremove -y && sudo apt clean
