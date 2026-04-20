@@ -1,0 +1,6 @@
+# Ignore all Open Code local configurations
+.opencode/
+.opencode.json
+
+# Ignore temporary backups created by the agent
+*.bak
