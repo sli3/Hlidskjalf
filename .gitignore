@@ -1,6 +1,8 @@
 # Ignore all Open Code local configurations
 .opencode/
 .opencode.json
+opencode.json
+.DS_Store
 
 # Ignore temporary backups created by the agent
 *.bak
