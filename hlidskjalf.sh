@@ -55,8 +55,18 @@ trap 'handle_error $? "Unexpected script termination at line $LINENO"' ERR
     set -e 
 
     echo "--- Starting Hlidskjalf Maintenance Run ---"
-    
+
     # --- Dry-Run Setup ---
+
+    # Function to display disk usage
+    display_disk_usage() {
+        echo "=== Disk Usage ==="
+        df -h / | grep "/$" | awk '{print "Total: " $2 ", Used: " $3 ", Available: " $4}'
+    }
+
+    # Pre-cleanup disk check
+    echo "=== Pre-Cleanup Disk Usage ==="
+    display_disk_usage
     if [ "$1" == "--dry-run" ]; then
         DRY_RUN_MODE=true
         echo "⚠️  RUNNING IN DRY-RUN MODE: No changes will be made. ⚠️"
@@ -122,6 +132,8 @@ sudo journalctl --vacuum-time="$LOG_TIME_LIMIT"
 
     echo "✅ System log and APT cleanup finished."
     echo "--------------------------------------------------------"
+    echo "=== Post-Cleanup Disk Usage ==="
+    display_disk_usage
     echo "🎉 Maintenance complete."
 
-} 2>&1 | sudo tee -a $LOG_FILE # <-- LOG_FILE variable used here as well
+    } 2>&1 | sudo tee -a $LOG_FILE # <-- LOG_FILE variable used here as well
