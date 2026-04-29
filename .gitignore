@@ -3,6 +3,6 @@
 .opencode.json
 opencode.json
 .DS_Store
-
+.session-memos
 # Ignore temporary backups created by the agent
 *.bak

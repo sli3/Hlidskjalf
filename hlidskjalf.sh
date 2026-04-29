@@ -60,20 +60,12 @@ trap 'handle_error $? "Unexpected script termination at line $LINENO"' ERR
 
     # Function to display disk usage
     display_disk_usage() {
-        echo "=== Disk Usage ==="
-        df -h / | grep "/$" | awk '{print "Total: " $2 ", Used: " $3 ", Available: " $4}'
+echo "=== Disk Usage ==="
+df -h / | grep "/$" | awk '{print "Total: " $2 ", Used: " $3 ", Available: " $4}'
     }
 
     # Pre-cleanup disk check
-    echo "=== Pre-Cleanup Disk Usage ==="
-    display_disk_usage
-    if [ "$1" == "--dry-run" ]; then
-        DRY_RUN_MODE=true
-        echo "⚠️  RUNNING IN DRY-RUN MODE: No changes will be made. ⚠️"
-    else
-        DRY_RUN_MODE=false
-    fi
-    echo "--------------------------------------------------------"
+echo "=== Pre-Cleanup Disk Usage ===" && display_disk_usage && echo "--------------------------------------------------------"
 
     ## 🐳 Section 1: Docker Cleanup
     echo "1. Cleaning up unused Docker resources..."
@@ -98,7 +90,7 @@ trap 'handle_error $? "Unexpected script termination at line $LINENO"' ERR
                 continue 
             fi
             
-            ERR_OUTPUT=$(eval $CMD 2>&1 || true) 
+            ERR_OUTPUT=$(eval "$CMD" 2>&1 || true) 
             EXIT_STATUS=$? 
             
             echo " -> Output for [${CMD}]:"
@@ -123,17 +115,15 @@ trap 'handle_error $? "Unexpected script termination at line $LINENO"' ERR
         echo " [DRY RUN] Would execute: sudo apt autoremove -y && sudo apt clean."
     else
         echo "Running Journalctl vacuum..."
-sudo journalctl --vacuum-size="$LOG_SIZE_LIMIT"
-sudo journalctl --vacuum-time="$LOG_TIME_LIMIT"
+journalctl --vacuum-size="$LOG_SIZE_LIMIT"
+journalctl --vacuum-time="$LOG_TIME_LIMIT"
 
         echo "Running APT package cache cleanup..."
-        sudo apt autoremove -y && sudo apt clean
+apt autoremove -y && apt clean
     fi
 
     echo "✅ System log and APT cleanup finished."
     echo "--------------------------------------------------------"
-    echo "=== Post-Cleanup Disk Usage ==="
-    display_disk_usage
-    echo "🎉 Maintenance complete."
+echo "=== Post-Cleanup Disk Usage ===" && display_disk_usage && echo "🎉 Maintenance complete."
 
     } 2>&1 | sudo tee -a $LOG_FILE # <-- LOG_FILE variable used here as well
