@@ -150,7 +150,13 @@ avail_bytes() {
 }
 
 disk_line() {
-    df -h -P "$DISK_TARGET" | awk 'NR==2 {printf "size %s · used %s · free %s (%s used)", $2, $3, $4, $5}'
+    # Issue #3: like avail_bytes(), this must never surface a non-zero status
+    # into the menu/report. If df fails or the target has no mount entry, fall
+    # back to "unavailable" rather than printing an error and exiting non-zero.
+    if "${SUDO[@]}" df -h -P "$DISK_TARGET" 2>/dev/null | awk 'NR==2 {printf "size %s · used %s · free %s (%s used)", $2, $3, $4, $5}'; then
+        return 0
+    fi
+    return 0
 }
 
 pkg_manager() {
@@ -596,6 +602,11 @@ init_logging() {
     if [[ ! -w "$LOG_FILE" ]]; then
         "${SUDO[@]}" touch "$LOG_FILE" 2>/dev/null || true
         "${SUDO[@]}" chown "$(id -u):$(id -g)" "$LOG_FILE" 2>/dev/null || true
+        # Issue #1: set restrictive perms immediately after creating the log.
+        # Under the default umask the file would otherwise land at 0644 and be
+        # world-readable; it holds host detail (hostname, timestamps, raw
+        # journalctl/apt output), so lock it down to 0640 right away.
+        "${SUDO[@]}" chmod 640 "$LOG_FILE" 2>/dev/null || true
     fi
     if [[ -w "$LOG_FILE" ]]; then
         # Tee to terminal and to a colour-stripped copy in the log.
