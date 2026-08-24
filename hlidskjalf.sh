@@ -115,14 +115,16 @@ to_bytes() {
         u = substr(v, RSTART + RLENGTH)
         gsub(/[ \t]/,"",u); u = toupper(u)
         m = 1
-        if      (u=="KB"||u=="K") m = 1000
-        else if (u=="MB")         m = 1000000
-        else if (u=="GB")         m = 1000000000
-        else if (u=="TB")         m = 1000000000000
-        else if (u=="KIB")        m = 1024
-        else if (u=="MIB")        m = 1048576
-        else if (u=="GIB")        m = 1073741824
-        else if (u=="TIB")        m = 1099511627776
+        else if (u=="KB"||u=="K") m = 1000
+        else if (u=="MB"||u=="M") m = 1000000
+        else if (u=="GB"||u=="G") m = 1000000000
+        else if (u=="TB"||u=="T") m = 1000000000000
+        else if (u=="KB"||u=="KIB") m = 1024
+        else if (u=="MB"||u=="MIB") m = 1048576
+        else if (u=="GB"||u=="GIB") m = 1073741824
+        else if (u=="TB"||u=="TIB") m = 1099511627776
+        else if (u=="D"||u=="day"||u=="days") m = 86400
+        else m = 1
         printf "%.0f", n * m
     }'
 }
